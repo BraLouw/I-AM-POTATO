@@ -4,105 +4,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>🥔 POTATO ESCAPE</title>
+<title>POTATO ESCAPE</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#111;font-family:Arial,sans-serif;color:white}
+body{margin:0;overflow:hidden;background:#101810;font-family:Arial,sans-serif;color:white}
 canvas{display:block}
-#hud{
- position:fixed;top:15px;left:15px;z-index:5;
- background:#101b19cc;padding:13px 18px;border-radius:13px;
- border:1px solid #ffffff35;pointer-events:none;
+#ui{position:fixed;inset:0;pointer-events:none}
+#top{
+ position:absolute;top:15px;left:50%;transform:translateX(-50%);
+ background:#101810bb;padding:12px 24px;border:1px solid #ffffff30;
+ border-radius:12px;text-align:center;min-width:260px;
+ backdrop-filter:blur(10px)
 }
-#hud strong{font-size:19px;color:#ffe09a}
-#hud small{display:block;margin-top:6px;color:#ddd}
-#help{
- position:fixed;bottom:15px;left:50%;transform:translateX(-50%);
- background:#101b19cc;padding:12px 20px;border-radius:12px;
- font-size:13px;text-align:center;white-space:nowrap;
+#top h2{margin:0;font-size:20px;letter-spacing:4px}
+#objective{font-size:12px;color:#ddd;margin-top:6px}
+#stats{
+ position:absolute;left:18px;top:18px;background:#101810bb;
+ padding:13px;border-radius:10px;font-size:13px;line-height:1.8;
+ border:1px solid #ffffff25
 }
-.overlay{
- position:fixed;inset:0;z-index:10;background:#07100bdc;
- display:flex;align-items:center;justify-content:center;
- padding:20px;
+#alert{
+ position:absolute;top:105px;left:50%;transform:translateX(-50%);
+ font-size:17px;font-weight:bold;color:#ff5656;
+ text-shadow:0 2px 5px black;opacity:0;transition:opacity .2s
+}
+#alert.show{opacity:1}
+#meter{
+ position:absolute;top:140px;left:50%;transform:translateX(-50%);
+ width:180px;height:9px;background:#222;border:1px solid #ffffff70;
+ border-radius:10px;overflow:hidden;opacity:0
+}
+#meter.show{opacity:1}
+#meterfill{height:100%;width:0;background:#ff3020;transition:width .1s}
+#controls{
+ position:absolute;bottom:15px;left:50%;transform:translateX(-50%);
+ background:#101810bb;border:1px solid #ffffff30;
+ padding:10px 16px;border-radius:10px;font-size:12px;
+ white-space:nowrap;text-align:center
+}
+#crosshair{
+ position:absolute;left:50%;top:50%;width:5px;height:5px;
+ border-radius:50%;background:#ffffff80;transform:translate(-50%,-50%)
+}
+#overlay{
+ position:fixed;inset:0;background:linear-gradient(#07110b99,#050905ed);
+ display:flex;align-items:center;justify-content:center;z-index:10;
+ text-align:center;padding:20px
 }
 .panel{
- background:linear-gradient(145deg,#28452f,#14251d);
- border:2px solid #ffffff36;border-radius:22px;
- padding:30px;width:min(540px,95vw);text-align:center;
- box-shadow:0 15px 60px #0009;
+ max-width:560px;width:100%;padding:35px 28px;
+ border:1px solid #ffffff35;border-radius:18px;
+ background:linear-gradient(145deg,#263629ed,#111a13f5);
+ box-shadow:0 20px 90px #000b
 }
-h1{font-size:clamp(35px,8vw,65px);margin:0 0 10px;color:#ffdb83;text-shadow:3px 4px #633e20}
-h2{color:#ffdb83}
-p{line-height:1.6;color:#e4e9df}
-button{
- border:0;border-radius:12px;padding:14px 20px;
- background:#f4c75f;color:#36220b;font-size:17px;
- font-weight:900;cursor:pointer;margin:6px;
- transition:.15s;
+.panel h1{font-size:clamp(36px,8vw,66px);letter-spacing:5px;margin:0 0 8px}
+.panel p{color:#c6d0c4;line-height:1.6}
+#start{
+ background:#b3d17a;color:#17200e;border:0;border-radius:9px;
+ padding:16px 40px;font-size:18px;font-weight:bold;
+ cursor:pointer;margin-top:15px
 }
-button:hover{transform:scale(1.05);background:#ffe18c}
-.destinations{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
-.destinations button{margin:0;min-height:85px}
-.hidden{display:none!important}
-#message{color:#ffdc85;font-weight:bold}
+#start:hover{background:#d3f09a}
+.small{font-size:12px;color:#aeb8ad}
+#message{font-size:14px;color:#e4e9d9;min-height:20px}
 </style>
 </head>
 <body>
 
-<div id="hud">
- <strong>🥔 POTATO ESCAPE</strong>
- <small id="location">Location: The Farm</small>
- <small id="objective">Objective: Escape the farm!</small>
- <small id="status">Ready to roll!</small>
-</div>
-
-<div id="help">
- WASD / Arrows: Move &nbsp; | &nbsp; SPACE: Jump
- &nbsp; | &nbsp; Reach the goal!
-</div>
-
-<div id="startScreen" class="overlay">
- <div class="panel">
-  <h1>POTATO<br>ESCAPE</h1>
-  <p>You are a potato. You live on a farm.<br>
-  But you have a dream... TO ESCAPE!</p>
-  <p>Roll across the farm, jump over obstacles and don't fall!</p>
-  <button id="startBtn">START GAME 🥔</button>
-  <p style="font-size:12px">A 3D potato adventure</p>
+<div id="ui">
+ <div id="top">
+  <h2>POTATO ESCAPE</h2>
+  <div id="objective">COLLECT 5 GOLDEN POTATOES AND ESCAPE</div>
+ </div>
+ <div id="stats">
+  <div>🥔 Golden potatoes: <b id="count">0 / 5</b></div>
+  <div>🏃 Stamina: <b id="stamina">100%</b></div>
+  <div>👨 Farmer: <b id="farmerstatus">PATROLLING</b></div>
+ </div>
+ <div id="alert">THE FARMER HAS SPOTTED YOU!</div>
+ <div id="meter"><div id="meterfill"></div></div>
+ <div id="crosshair"></div>
+ <div id="controls">
+  WASD Move &nbsp; | &nbsp; Mouse Look &nbsp; | &nbsp; SHIFT Run
+  &nbsp; | &nbsp; CTRL Crouch &nbsp; | &nbsp; SPACE Jump
  </div>
 </div>
 
-<div id="destinationScreen" class="overlay hidden">
+<div id="overlay">
  <div class="panel">
-  <h1>YOU ESCAPED!</h1>
-  <p>You made it out of the farm! 🎉</p>
-  <h2>WHERE DO YOU WANT TO GO?</h2>
-  <p>Choose your potato's next adventure.</p>
-  <div class="destinations">
-   <button data-dest="beach">🏖️<br>THE BEACH</button>
-   <button data-dest="mountain">🏔️<br>THE MOUNTAINS</button>
-   <button data-dest="city">🏙️<br>THE CITY</button>
-   <button data-dest="forest">🌲<br>THE FOREST</button>
-  </div>
- </div>
-</div>
-
-<div id="deathScreen" class="overlay hidden">
- <div class="panel">
-  <h1 style="color:#ff8888">SPLAT!</h1>
-  <h2>YOUR POTATO DIED</h2>
-  <p>Your potato fell and got squashed!</p>
-  <button id="restartBtn">TRY AGAIN 🔄</button>
- </div>
-</div>
-
-<div id="winScreen" class="overlay hidden">
- <div class="panel">
-  <h1>YOU DID IT! 🥔</h1>
-  <h2>THE POTATO IS FREE!</h2>
-  <p>You successfully reached your destination!</p>
-  <button id="againBtn">PLAY AGAIN</button>
+  <h1>🥔 POTATO<br>ESCAPE</h1>
+  <p>
+   You've escaped the vegetable garden.<br>
+   Now you must cross the farmer's massive property.
+  </p>
+  <p>
+   Find all five golden potatoes.<br>
+   Avoid the farmer. Reach the escape gate.
+  </p>
+  <p class="small">
+   HARD MODE: If the farmer catches you, your adventure ends.
+  </p>
+  <div id="message"></div>
+  <button id="start">START ADVENTURE</button>
  </div>
 </div>
 
@@ -117,623 +120,769 @@ button:hover{transform:scale(1.05);background:#ffe18c}
 <script type="module">
 import * as THREE from "three";
 
-// ---------------------------------
-// GAME SETUP
-// ---------------------------------
+const $=id=>document.getElementById(id);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x9eb3b0);
+scene.fog=new THREE.FogExp2(0x9eb3b0,0.0038);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9bc9e8);
-scene.fog = new THREE.Fog(0x9bc9e8,35,125);
-
-const camera = new THREE.PerspectiveCamera(
- 70,innerWidth/innerHeight,.1,250
-);
-
-const renderer = new THREE.WebGLRenderer({
- antialias:true
-});
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,500);
+const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.15;
+renderer.toneMappingExposure=1.1;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xcceaff,0x53613b,2));
+// LIGHTING
+scene.add(new THREE.HemisphereLight(0xdce8dc,0x59614b,2));
 
-const sun = new THREE.DirectionalLight(0xffe2b4,3);
-sun.position.set(-15,30,15);
+const sun=new THREE.DirectionalLight(0xfff1d6,3.1);
+sun.position.set(-60,90,-40);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
-sun.shadow.camera.left=-55;
-sun.shadow.camera.right=55;
-sun.shadow.camera.top=55;
-sun.shadow.camera.bottom=-55;
+sun.shadow.camera.left=-100;
+sun.shadow.camera.right=100;
+sun.shadow.camera.top=100;
+sun.shadow.camera.bottom=-100;
+sun.shadow.bias=-0.0002;
 scene.add(sun);
 
-const world = new THREE.Group();
-scene.add(world);
+const fill=new THREE.DirectionalLight(0xd1e1ff,.65);
+fill.position.set(50,30,60);
+scene.add(fill);
 
-// ---------------------------------
 // MATERIALS
-// ---------------------------------
-
-function mat(color,roughness=1){
- return new THREE.MeshStandardMaterial({
-  color,roughness
- });
-}
-
-const grass=mat(0x558c36);
-const dirt=mat(0x8c643b);
-const wood=mat(0x704526);
-const darkWood=mat(0x422c1b);
-const leaf=mat(0x3e742d);
-const gold=mat(0xffcf50);
-const white=mat(0xffffff);
-
-// ---------------------------------
-// POTATO CHARACTER
-// ---------------------------------
-
-const potato = new THREE.Group();
-scene.add(potato);
-
-const potatoSkin = new THREE.MeshStandardMaterial({
- color:0x9b6935,
- roughness:.95
+const mat=(color,roughness=1,metalness=0)=>new THREE.MeshStandardMaterial({
+ color,roughness,metalness
 });
 
-const potatoGeometry = new THREE.SphereGeometry(1,40,32);
+const grassMat=mat(0x526c3d);
+const dirtMat=mat(0x76634b);
+const woodMat=mat(0x59412d);
+const darkWood=mat(0x382b21);
+const leafMat=mat(0x344c2c);
+const leafLight=mat(0x52683a);
+const metalMat=mat(0x505958,.55,.55);
 
-// Make the potato slightly lumpy.
-const positions=potatoGeometry.attributes.position;
-for(let i=0;i<positions.count;i++){
- const x=positions.getX(i);
- const y=positions.getY(i);
- const z=positions.getZ(i);
- const noise=Math.sin(x*13+y*17+z*11)*.025+
-             Math.sin(x*23-y*9+z*15)*.012;
- const s=1+noise;
- positions.setXYZ(i,x*s,y*s,z*s);
-}
-potatoGeometry.computeVertexNormals();
-
-const body = new THREE.Mesh(potatoGeometry,potatoSkin);
-body.scale.set(.65,.53,.82);
-body.castShadow=true;
-body.receiveShadow=true;
-potato.add(body);
-
-// Potato eyes
-function makeEye(x,z){
- const eye=new THREE.Mesh(
-  new THREE.SphereGeometry(.065,12,12),
-  mat(0x21150c)
- );
- eye.position.set(x,.12,z);
- potato.add(eye);
-}
-makeEye(-.22,-.69);
-makeEye(.22,-.69);
-
-// Potato dimples
-for(let i=0;i<12;i++){
- const a=Math.random()*Math.PI*2;
- const y=(Math.random()-.5)*.7;
- const dimple=new THREE.Mesh(
-  new THREE.SphereGeometry(.025,8,8),
-  mat(0x52351e)
- );
- dimple.position.set(
-  Math.cos(a)*.59,y,Math.sin(a)*.75
- );
- potato.add(dimple);
+// PROCEDURAL TEXTURES
+function texture(type){
+ const c=document.createElement("canvas");
+ c.width=c.height=512;
+ const ctx=c.getContext("2d");
+ if(type==="grass"){
+  ctx.fillStyle="#526c3d";ctx.fillRect(0,0,512,512);
+  for(let i=0;i<17000;i++){
+   const x=Math.random()*512,y=Math.random()*512;
+   const g=55+Math.random()*65;
+   ctx.strokeStyle=`rgba(${45+Math.random()*30},${g},${35+Math.random()*20},.55)`;
+   ctx.lineWidth=1+Math.random()*2;
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-2,y-4-Math.random()*8);ctx.stroke();
+  }
+ }
+ if(type==="dirt"){
+  ctx.fillStyle="#76634b";ctx.fillRect(0,0,512,512);
+  for(let i=0;i<12000;i++){
+   const x=Math.random()*512,y=Math.random()*512;
+   ctx.fillStyle=Math.random()>.5?"#927b5d":"#554632";
+   ctx.globalAlpha=Math.random()*.45;
+   ctx.beginPath();ctx.arc(x,y,Math.random()*3,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+ }
+ const t=new THREE.CanvasTexture(c);
+ t.wrapS=t.wrapT=THREE.RepeatWrapping;
+ t.colorSpace=THREE.SRGBColorSpace;
+ return t;
 }
 
-// ---------------------------------
-// WORLD HELPERS
-// ---------------------------------
+const grassTex=texture("grass");
+grassTex.repeat.set(35,35);
+grassMat.map=grassTex;
 
-let platforms=[];
-let destination="farm";
-let playing=false;
-let dead=false;
-let won=false;
-let selectedDestination=false;
+const dirtTex=texture("dirt");
+dirtTex.repeat.set(3,30);
+dirtMat.map=dirtTex;
 
-const velocity=new THREE.Vector3();
-let grounded=false;
-let jumpPressed=false;
-let jumpCooldown=0;
-let squashTime=0;
+// TERRAIN
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(230,230),grassMat);
+ground.rotation.x=-Math.PI/2;
+ground.position.y=-.1;
+ground.receiveShadow=true;
+scene.add(ground);
 
-function addPlatform(x,z,w,d,color,top=0){
- const mesh=new THREE.Mesh(
-  new THREE.BoxGeometry(w,.55,d),
-  mat(color)
- );
- mesh.position.set(x,top-.275,z);
- mesh.receiveShadow=true;
- mesh.castShadow=true;
- world.add(mesh);
- platforms.push({x,z,w,d,top});
- return mesh;
-}
-
-function box(x,y,z,w,h,d,color,group=world){
- const m=new THREE.Mesh(
-  new THREE.BoxGeometry(w,h,d),mat(color)
- );
+function box(w,h,d,material,x,y,z){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
  m.position.set(x,y,z);
- m.castShadow=true;
- m.receiveShadow=true;
- group.add(m);
+ m.castShadow=true;m.receiveShadow=true;
+ scene.add(m);
  return m;
 }
 
-function tree(x,z,scale=1){
- const trunk=box(x,1*scale,z,.45*scale,2*scale,.45*scale,0x654326);
- const crown=new THREE.Mesh(
-  new THREE.SphereGeometry(1.6*scale,12,10),
-  mat(0x356d2b)
- );
- crown.position.set(x,2.7*scale,z);
- crown.castShadow=true;
- world.add(crown);
+function cylinder(rt,rb,h,material,x,y,z,segments=12){
+ const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),material);
+ m.position.set(x,y,z);
+ m.castShadow=true;m.receiveShadow=true;
+ scene.add(m);
+ return m;
 }
 
-function fence(x,z,length,alongX=true){
- const count=Math.floor(length/2);
- for(let i=0;i<=count;i++){
-  const p=i*length/count-length/2;
-  if(alongX){
-   box(x+p,.65,z,.18,1.3,.18,0x704321);
-  }else{
-   box(x,.65,z+p,.18,1.3,.18,0x704321);
-  }
+// FARM TRACK
+const track=new THREE.Mesh(new THREE.PlaneGeometry(12,200),dirtMat);
+track.rotation.x=-Math.PI/2;
+track.position.set(0,.01,0);
+track.receiveShadow=true;
+scene.add(track);
+
+const crossTrack=new THREE.Mesh(new THREE.PlaneGeometry(100,9),dirtMat);
+crossTrack.rotation.x=-Math.PI/2;
+crossTrack.position.set(-30,.015,25);
+crossTrack.receiveShadow=true;
+scene.add(crossTrack);
+
+// FARMHOUSE
+function buildHouse(x,z){
+ const wall=mat(0xb6a58a);
+ const roof=mat(0x453b34);
+ const house=new THREE.Group();
+ const base=new THREE.Mesh(new THREE.BoxGeometry(19,9,15),wall);
+ base.position.y=4.5;base.castShadow=true;base.receiveShadow=true;
+ house.add(base);
+
+ const roofGeo=new THREE.ConeGeometry(14,7,4);
+ const r=new THREE.Mesh(roofGeo,roof);
+ r.position.set(0,11,0);r.rotation.y=Math.PI/4;
+ r.castShadow=true;house.add(r);
+
+ const door=new THREE.Mesh(new THREE.BoxGeometry(2.3,4.2,.2),darkWood);
+ door.position.set(0,2.1,7.6);house.add(door);
+
+ for(const wx of [-6,6]){
+  const win=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.2,.2),mat(0x425d66,.3));
+  win.position.set(wx,5,7.6);house.add(win);
+  const frame=box(2.8,.15,.25,woodMat,x+wx,5,z+7.75);
+  frame.position.y=5;
  }
- if(alongX){
-  box(x,.45,z,length, .13,.14,0xb18450);
-  box(x,.95,z,length, .13,.14,0xb18450);
- }else{
-  box(x,.45,z,.14,.13,length,0xb18450);
-  box(x,.95,z,.14,.13,length,0xb18450);
- }
+ house.position.set(x,0,z);
+ scene.add(house);
 }
+buildHouse(-42,-58);
 
-function barn(x,z){
- box(x,2,z,7,4,6,0xa53d2c);
- const roof=new THREE.Mesh(
-  new THREE.ConeGeometry(5.4,3,4),
-  mat(0x49332a)
- );
- roof.position.set(x,5.2,z);
- roof.rotation.y=Math.PI/4;
- roof.castShadow=true;
- world.add(roof);
- box(x,1.2,z-3.04,2.4,2.4,.15,0x44271b);
- box(x,3.2,z-3.12,2.5,.25,.15,0xe5c5a0);
+// BARN
+function buildBarn(){
+ const red=mat(0x873d2f);
+ box(24,13,19,red,48,6.5,-46);
+ const roof=mat(0x34383a,.7,.25);
+ const a=box(26,1,13,roof,48,14,-52);
+ a.rotation.z=-.35;
+ const b=box(26,1,13,roof,48,14,-40);
+ b.rotation.z=.35;
+ box(6,8,.3,darkWood,48,4,-36.4);
 }
+buildBarn();
 
-function crops(x,z){
- for(let i=0;i<8;i++){
-  for(let j=0;j<5;j++){
-   const xx=x+i*.8;
-   const zz=z+j*.8;
-   const plant=new THREE.Group();
-   const stem=box(0,.25,0,.08,.5,.08,0x426c25,plant);
-   const leafMesh=new THREE.Mesh(
-    new THREE.SphereGeometry(.22,8,7),
-    leaf
-   );
-   leafMesh.scale.set(1,.35,1);
-   leafMesh.position.y=.42;
-   plant.add(leafMesh);
-   plant.position.set(xx,0,zz);
-   world.add(plant);
-  }
- }
-}
-
-function clearWorld(){
- while(world.children.length){
-  const o=world.children[0];
-  world.remove(o);
- }
- platforms=[];
-}
-
-function resetCharacter(x=0,z=5){
- potato.position.set(x,.85,z);
- potato.rotation.set(0,0,0);
- velocity.set(0,0,0);
- body.scale.set(.65,.53,.82);
- dead=false;
- won=false;
- squashTime=0;
- grounded=true;
-}
-
-// ---------------------------------
-// FARM WORLD
-// ---------------------------------
-
-function buildFarm(){
- clearWorld();
- destination="farm";
- scene.background.set(0x9bc9e8);
- scene.fog.color.set(0x9bc9e8);
-
- // Starting farm ground and platforms
- addPlatform(0,5,20,24,0x668e3f);
- addPlatform(0,-13,5,13,0x8b6843);
- addPlatform(0,-27,13,12,0x668e3f);
-
- // Barn
- barn(-7,10);
-
- // Fences
- fence(7,4,10,false);
- fence(-8,-24,10,false);
- fence(0,16,15,true);
-
- // Trees and crops
- tree(-10,-8,1.1);
- tree(10,-7,.9);
- tree(-8,-31,1);
- crops(3,6);
-
- // Hay bales
+// TREES
+function tree(x,z,s=1){
+ const trunk=cylinder(.55*s,.8*s,7*s,woodMat,x,3.5*s,z,9);
+ const greens=[leafMat,leafLight,mat(0x435d34)];
  for(let i=0;i<4;i++){
-  const h=new THREE.Mesh(
-   new THREE.CylinderGeometry(.7,.7,.9,16),
-   mat(0xc69b42)
-  );
-  h.rotation.z=Math.PI/2;
-  h.position.set(-4+i*2,.55,2);
-  h.castShadow=true;
-  world.add(h);
+  const geo=new THREE.IcosahedronGeometry((4-i*.35)*s,2);
+  const crown=new THREE.Mesh(geo,greens[i%3]);
+  crown.position.set(x+(Math.random()-.5)*1.3,6.5*s+i*2.0*s,z+(Math.random()-.5)*1.3);
+  crown.scale.set(1,1.1,.95);
+  crown.castShadow=true;crown.receiveShadow=true;
+  scene.add(crown);
  }
-
- // Farm gate
- box(-2,1.8,-32,.3,3.6,.3,0x714623);
- box(2,1.8,-32,.3,3.6,.3,0x714623);
- box(0,3.6,-32,4.3,.3,.3,0x714623);
-
- // Escape sign
- const sign=box(0,4.5,-32,3.4,.9,.2,0x442918);
- sign.material=mat(0x442918);
-
- // Decorations beyond the farm
- for(let i=0;i<12;i++){
-  tree(-17+i*3,-38,1.3);
- }
- 
- resetCharacter(0,6);
- document.getElementById("location").textContent="Location: The Farm";
- document.getElementById("objective").textContent="Objective: Escape the farm!";
 }
 
-// ---------------------------------
-// DESTINATION WORLDS
-// ---------------------------------
-
-function buildDestination(type){
- clearWorld();
- destination=type;
- scene.background.set(
-  type==="beach"?0x65c9e8:
-  type==="mountain"?0xa9c9e8:
-  type==="city"?0x899bb5:0x8ab6a0
- );
- scene.fog.color.copy(scene.background);
-
- const colors={
-  beach:0xd6c18a,
-  mountain:0x9da8b2,
-  city:0x777d86,
-  forest:0x47723a
- };
- const groundColor=colors[type];
-
- // A sequence of platforms and gaps.
- addPlatform(0,0,14,15,groundColor);
- addPlatform(0,-18,9,12,groundColor);
- addPlatform(0,-34,13,12,groundColor);
- addPlatform(0,-52,9,14,groundColor);
- addPlatform(0,-73,18,23,groundColor);
-
- // Environment details
- if(type==="beach"){
-  // Ocean around the beach
-  const water=new THREE.Mesh(
-   new THREE.PlaneGeometry(150,150),
-   new THREE.MeshStandardMaterial({
-    color:0x139cce,roughness:.25,
-    metalness:.15,transparent:true,opacity:.9
-   })
-  );
-  water.rotation.x=-Math.PI/2;
-  water.position.set(0,-1,-65);
-  world.add(water);
-  for(let i=0;i<9;i++)tree(-11+i*3,-45,1.3);
-  box(0,.15,-86,18,.3,20,0xd8c28d);
- }
- if(type==="mountain"){
-  for(let i=0;i<10;i++){
-   const m=new THREE.Mesh(
-    new THREE.ConeGeometry(7+Math.random()*4,15+Math.random()*12,6),
-    mat(0x758697)
-   );
-   m.position.set(-22+i*5,7,-30-Math.random()*30);
-   world.add(m);
-  }
- }
- if(type==="city"){
-  for(let i=0;i<14;i++){
-   const x=(i%2===0?-1:1)*(10+Math.random()*5);
-   const z=-5-i*5;
-   box(x,3+Math.random()*3,z,4,8+Math.random()*6,4,
-    i%2?0x687a9d:0x9d9da5);
-   box(x,1,z,4,.4,4,0x343d48);
-  }
-  box(0,.15,-86,18,.3,20,0x444c56);
- }
- if(type==="forest"){
-  for(let i=0;i<25;i++){
-   const x=(Math.random()-.5)*34;
-   const z=-5-Math.random()*70;
-   tree(x,z,.8+Math.random()*.8);
-  }
- }
-
- // Destination goal
- const portal=new THREE.Mesh(
-  new THREE.TorusGeometry(2, .25,12,48),
-  new THREE.MeshStandardMaterial({
-   color:0xffd44f,emissive:0xff9d19,emissiveIntensity:1
-  })
- );
- portal.position.set(0,2,-83);
- portal.rotation.y=Math.PI/2;
- world.add(portal);
-
- const glow=new THREE.PointLight(0xffc85b,20,15);
- glow.position.set(0,3,-83);
- world.add(glow);
-
- resetCharacter(0,1);
- document.getElementById("location").textContent=
-  "Location: "+type.toUpperCase();
- document.getElementById("objective").textContent=
-  "Objective: Reach the golden portal!";
+// TREE PLACEMENT
+for(let i=0;i<65;i++){
+ let x=(Math.random()-.5)*205;
+ let z=(Math.random()-.5)*205;
+ if(Math.abs(x)<14|| (x>30&&z<-25))continue;
+ tree(x,z,.7+Math.random()*.8);
 }
 
-// ---------------------------------
+// BUSHES
+const bushes=[];
+function bush(x,z,s=1){
+ const g=new THREE.Group();
+ for(let i=0;i<7;i++){
+  const b=new THREE.Mesh(
+   new THREE.IcosahedronGeometry(1.2*s,2),
+   i%2?leafMat:leafLight
+  );
+  b.position.set((Math.random()-.5)*2*s,Math.random()*1.1*s,(Math.random()-.5)*2*s);
+  b.scale.set(1.2,.8,1);
+  b.castShadow=true;g.add(b);
+ }
+ g.position.set(x,0,z);
+ scene.add(g);
+ bushes.push({x,z,r:2.2*s});
+}
+for(let i=0;i<30;i++){
+ bush(-28+Math.random()*55,-75+Math.random()*145,.7+Math.random()*.7);
+}
+
+// FENCES
+function fence(x1,z1,x2,z2,spacing=3){
+ const len=Math.hypot(x2-x1,z2-z1);
+ const n=Math.ceil(len/spacing);
+ for(let i=0;i<=n;i++){
+  const t=i/n,x=x1+(x2-x1)*t,z=z1+(z2-z1)*t;
+  box(.22,1.5,.22,woodMat,x,.75,z);
+ }
+ for(let y of [.65,1.3]){
+  const rail=box(.18,.18,len,woodMat,(x1+x2)/2,y,(z1+z2)/2);
+  rail.rotation.y=-Math.atan2(x2-x1,z2-z1);
+ }
+}
+fence(-65,-80,65,-80);
+fence(-65,80,65,80);
+fence(-65,-80,-65,80);
+fence(65,-80,65,80);
+
+// CROP FIELDS
+for(let row=0;row<14;row++){
+ for(let i=0;i<16;i++){
+  const x=25+i*2.1,z=8+row*2.3;
+  cylinder(.12,.18,.55,mat(0x445b30),x,.27,z,7);
+  const leaves=box(.12,.06,1.5,leafLight,x,.6,z);
+  leaves.rotation.y=.4;
+ }
+}
+
+// ROCKS
+for(let i=0;i<70;i++){
+ const x=(Math.random()-.5)*190,z=(Math.random()-.5)*190;
+ const rock=new THREE.Mesh(
+  new THREE.DodecahedronGeometry(.5+Math.random()*1.3,1),
+  mat(0x74776e)
+ );
+ rock.position.set(x,.3,z);
+ rock.scale.y=.55;
+ rock.castShadow=true;rock.receiveShadow=true;
+ scene.add(rock);
+}
+
+// POTATO PLAYER
+const player=new THREE.Group();
+scene.add(player);
+
+const potatoMat=new THREE.MeshStandardMaterial({
+ color:0xa17a48,roughness:.92
+});
+const potatoGeo=new THREE.SphereGeometry(1,40,32);
+const pos=potatoGeo.attributes.position;
+for(let i=0;i<pos.count;i++){
+ const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+ const n=1+.035*Math.sin(x*23+y*19+z*14)
+ +.025*Math.sin(x*37-z*29);
+ pos.setXYZ(i,x*n,y*n,z*n);
+}
+potatoGeo.computeVertexNormals();
+
+const body=new THREE.Mesh(potatoGeo,potatoMat);
+body.scale.set(.72,.95,.67);
+body.position.y=1.05;
+body.castShadow=true;
+body.receiveShadow=true;
+player.add(body);
+
+// Potato eyes
+const eyeWhite=mat(0xf4e9d4);
+const pupil=mat(0x171512);
+for(const x of [-.23,.23]){
+ const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,16,16),eyeWhite);
+ eye.position.set(x,1.28,.56);player.add(eye);
+ const p=new THREE.Mesh(new THREE.SphereGeometry(.065,12,12),pupil);
+ p.position.set(x,1.28,.665);player.add(p);
+}
+const mouth=new THREE.Mesh(
+ new THREE.TorusGeometry(.105,.025,8,20,Math.PI),
+ mat(0x422a1e)
+);
+mouth.position.set(0,.96,.65);
+mouth.rotation.z=Math.PI;
+player.add(mouth);
+
+// POTATO SPOTS
+for(let i=0;i<18;i++){
+ const a=Math.random()*Math.PI*2;
+ const b=(Math.random()-.5)*1.7;
+ const spot=new THREE.Mesh(
+  new THREE.SphereGeometry(.025+Math.random()*.025,8,8),
+  mat(0x64472e)
+ );
+ spot.position.set(
+  Math.sin(a)*.69*Math.cos(b),
+  1.05+Math.sin(b)*.9,
+  Math.cos(a)*.64*Math.cos(b)
+ );
+ player.add(spot);
+}
+
+// PLAYER POSITION
+player.position.set(0,0,65);
+
+// GOLDEN POTATO COLLECTIBLES
+let collected=0;
+const collectibles=[];
+const goldMat=new THREE.MeshStandardMaterial({
+ color:0xffca32,metalness:.55,roughness:.27,
+ emissive:0x4d2700,emissiveIntensity:.3
+});
+
+const spots=[
+ [-25,43],[23,18],[42,-5],[-35,-30],[10,-65]
+];
+
+spots.forEach(([x,z])=>{
+ const g=new THREE.Group();
+ const gold=new THREE.Mesh(new THREE.SphereGeometry(.7,24,18),goldMat);
+ gold.scale.set(.8,1,.75);
+ gold.position.y=1;
+ gold.castShadow=true;g.add(gold);
+ const ring=new THREE.Mesh(
+  new THREE.TorusGeometry(1.05,.055,8,32),
+  goldMat
+ );
+ ring.rotation.x=Math.PI/2;
+ ring.position.y=1;
+ g.add(ring);
+ const light=new THREE.PointLight(0xffc64d,2,5);
+ light.position.y=1.5;g.add(light);
+ g.position.set(x,0,z);
+ scene.add(g);
+ collectibles.push({group:g,active:true});
+});
+
+// ESCAPE GATE
+const gate=new THREE.Group();
+const gateMat=mat(0x493727);
+for(const x of [-4,4]){
+ const post=box(.55,5,.55,gateMat,x,2.5,-94);
+ gate.add(post);
+}
+const top=box(9,.5,.5,gateMat,0,5,-94);
+gate.add(top);
+const sign=box(4,1,.2,mat(0x9cbd72),0,4,-93.7);
+gate.add(sign);
+scene.add(gate);
+
+// TRUCK NEAR GATE
+const truckMat=mat(0x64705b);
+box(5,2,8,truckMat,-12,1,-90);
+box(4.7,1.5,3,mat(0x879ca1,.3),-12,2.5,-92);
+for(const x of [-14,-10]){
+ for(const z of [-93,-87]){
+  const wheel=new THREE.Mesh(
+   new THREE.CylinderGeometry(.7,.7,.35,20),mat(0x181818)
+  );
+  wheel.rotation.z=Math.PI/2;
+  wheel.position.set(x,.7,z);
+  scene.add(wheel);
+ }
+}
+
+// FARMER CHARACTER
+const farmer=new THREE.Group();
+scene.add(farmer);
+
+const skin=mat(0xc99b77);
+const shirt=mat(0x52604a);
+const trousers=mat(0x333c3c);
+const boots=mat(0x29221c);
+const hatMat=mat(0x66513a);
+
+const torso=box(1.1,1.6,.65,shirt,0,2.5,0);
+farmer.add(torso);
+
+const head=new THREE.Mesh(new THREE.SphereGeometry(.43,24,20),skin);
+head.position.set(0,3.65,0);farmer.add(head);
+
+const hat=new THREE.Mesh(new THREE.CylinderGeometry(.52,.5,.18,20),hatMat);
+hat.position.set(0,4.1,0);farmer.add(hat);
+const crown=new THREE.Mesh(new THREE.CylinderGeometry(.35,.39,.55,20),hatMat);
+crown.position.set(0,4.42,0);farmer.add(crown);
+
+const arms=[];
+for(const x of [-.8,.8]){
+ const arm=box(.3,1.25,.35,shirt,x,2.6,0);
+ farmer.add(arm);arms.push(arm);
+ const hand=new THREE.Mesh(new THREE.SphereGeometry(.19,12,12),skin);
+ hand.position.set(x,1.95,0);farmer.add(hand);
+}
+
+for(const x of [-.34,.34]){
+ const leg=box(.42,1.25,.5,trousers,x,.9,0);
+ farmer.add(leg);
+ const foot=box(.46,.3,.75,boots,x,.22,.13);
+ farmer.add(foot);
+}
+
+farmer.position.set(-25,0,0);
+
+// FARMER WAYPOINTS
+const waypoints=[
+ new THREE.Vector3(-25,0,0),
+ new THREE.Vector3(-35,0,-25),
+ new THREE.Vector3(-10,0,-45),
+ new THREE.Vector3(20,0,-30),
+ new THREE.Vector3(35,0,5),
+ new THREE.Vector3(10,0,35),
+ new THREE.Vector3(-20,0,35)
+];
+
+let waypoint=0;
+let farmerMode="PATROLLING";
+let spotted=0;
+let dead=false;
+let won=false;
+let gameStarted=false;
+let crouching=false;
+let jumping=false;
+let verticalVelocity=0;
+let stamina=100;
+let playerSpeed=0;
+let walkTime=0;
+
 // INPUT
-// ---------------------------------
-
 const keys={};
-window.addEventListener("keydown",e=>{
+let yaw=0;
+let pitch=.18;
+let mouseLocked=false;
+
+document.addEventListener("keydown",e=>{
  keys[e.code]=true;
- if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)){
-  e.preventDefault();
+ if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))e.preventDefault();
+ if(e.code==="ControlLeft"||e.code==="ControlRight")crouching=true;
+ if(e.code==="Space"&&gameStarted&&!jumping&&!dead&&!won){
+  jumping=true;verticalVelocity=8;
  }
 });
-window.addEventListener("keyup",e=>{
+document.addEventListener("keyup",e=>{
  keys[e.code]=false;
+ if(e.code==="ControlLeft"||e.code==="ControlRight")crouching=false;
 });
 
-function isDown(...codes){
- return codes.some(c=>keys[c]);
+document.addEventListener("mousemove",e=>{
+ if(!mouseLocked||!gameStarted)return;
+ yaw-=e.movementX*.0025;
+ pitch-=e.movementY*.002;
+ pitch=THREE.MathUtils.clamp(pitch,-.2,.75);
+});
+
+renderer.domElement.addEventListener("click",()=>{
+ if(gameStarted&&!dead&&!won){
+  renderer.domElement.requestPointerLock?.();
+ }
+});
+document.addEventListener("pointerlockchange",()=>{
+ mouseLocked=document.pointerLockElement===renderer.domElement;
+});
+
+// COLLISION / HIDING
+function isHidden(){
+ if(!crouching)return false;
+ return bushes.some(b=>
+  Math.hypot(player.position.x-b.x,player.position.z-b.z)<b.r+1.1
+ );
 }
 
-// ---------------------------------
-// DEATH / SQUASH
-// ---------------------------------
+function collision(x,z){
+ // Boundary
+ if(Math.abs(x)>62||Math.abs(z)>77)return true;
 
-function die(){
- if(dead||won)return;
- dead=true;
- velocity.set(0,0,0);
- body.scale.set(1.15,.13,1.2);
- document.getElementById("status").textContent="SQUASHED!";
- setTimeout(()=>{
-  if(dead){
-   document.getElementById("deathScreen").classList.remove("hidden");
-  }
- },700);
+ // House
+ if(Math.abs(x+42)<11&&Math.abs(z+58)<9)return true;
+ // Barn
+ if(Math.abs(x-48)<13&&Math.abs(z+46)<11)return true;
+
+ // Farmer is not a solid obstacle
+ return false;
 }
 
-// ---------------------------------
-// PHYSICS
-// ---------------------------------
+// CAMERA
+const cameraTarget=new THREE.Vector3();
+function updateCamera(dt){
+ const distance=7.5;
+ const height=3.1;
+ const targetYaw=yaw;
+ const targetPitch=pitch;
+ const target=new THREE.Vector3(
+  player.position.x-Math.sin(targetYaw)*distance*Math.cos(targetPitch),
+  player.position.y+height+Math.sin(targetPitch)*distance,
+  player.position.z-Math.cos(targetYaw)*distance*Math.cos(targetPitch)
+ );
+ camera.position.lerp(target,1-Math.pow(.001,dt));
+ cameraTarget.set(player.position.x,player.position.y+1.2,player.position.z);
+ camera.lookAt(cameraTarget);
+}
 
-function physics(dt){
- if(!playing||dead||won)return;
-
- const forward=isDown("KeyW","ArrowUp");
- const backward=isDown("KeyS","ArrowDown");
- const left=isDown("KeyA","ArrowLeft");
- const right=isDown("KeyD","ArrowRight");
+// FARMER AI
+function updateFarmer(dt){
+ const px=player.position.x,pz=player.position.z;
+ const fx=farmer.position.x,fz=farmer.position.z;
+ const dx=px-fx,dz=pz-fz;
+ const distance=Math.hypot(dx,dz);
 
  const direction=new THREE.Vector3(
-  (right?1:0)-(left?1:0),
-  0,
-  (backward?1:0)-(forward?1:0)
+  Math.sin(farmer.rotation.y),0,Math.cos(farmer.rotation.y)
  );
+ const toPlayer=new THREE.Vector3(dx,0,dz).normalize();
+ const angle=direction.dot(toPlayer);
 
- if(direction.lengthSq()>0)direction.normalize();
-
- const acceleration=17;
- velocity.x+=direction.x*acceleration*dt;
- velocity.z+=direction.z*acceleration*dt;
-
- // Friction
- const friction=grounded?4:1;
- velocity.x*=Math.max(0,1-friction*dt);
- velocity.z*=Math.max(0,1-friction*dt);
-
- // Speed limit
- const maxSpeed=10;
- const horizontal=Math.hypot(velocity.x,velocity.z);
- if(horizontal>maxSpeed){
-  velocity.x=velocity.x/horizontal*maxSpeed;
-  velocity.z=velocity.z/horizontal*maxSpeed;
+ // Farmer line of sight
+ let sees=false;
+ if(distance<28&&angle>.25&&!isHidden()){
+  const ray=new THREE.Raycaster();
+  ray.set(
+   new THREE.Vector3(fx,3.2,fz),
+   new THREE.Vector3(dx,0,dz).normalize()
+  );
+  const hits=ray.intersectObjects(
+   scene.children.filter(o=>o.isMesh&&o!==ground),true
+  );
+  if(!hits.length||hits[0].distance>distance)sees=true;
  }
 
- // Jump
- jumpCooldown-=dt;
- if(isDown("Space")&&grounded&&jumpCooldown<=0){
-  velocity.y=8.5;
-  grounded=false;
-  jumpCooldown=.25;
+ if(distance<7&&!isHidden())sees=true;
+
+ if(sees){
+  spotted+=dt*1.6;
+  farmerMode="CHASING";
+ }else{
+  spotted=Math.max(0,spotted-dt*.65);
+  if(farmerMode==="CHASING"&&spotted<=0.05)farmerMode="SEARCHING";
  }
 
- // Gravity
- velocity.y-=21*dt;
-
- potato.position.x+=velocity.x*dt;
- potato.position.y+=velocity.y*dt;
- potato.position.z+=velocity.z*dt;
-
- // Platform collision
- grounded=false;
- for(const p of platforms){
-  const inside=
-   Math.abs(potato.position.x-p.x)<p.w/2-.05&&
-   Math.abs(potato.position.z-p.z)<p.d/2-.05;
-
-  const feet=potato.position.y-.53;
-  if(inside&&velocity.y<=0&&feet<=p.top+.12&&feet>=p.top-.35){
-   potato.position.y=p.top+.53;
-   velocity.y=0;
-   grounded=true;
+ // Chase if alerted
+ let target;
+ let speed;
+ if(farmerMode==="CHASING"){
+  target=player.position.clone();
+  speed=7.5;
+ }else if(farmerMode==="SEARCHING"){
+  target=player.position.clone();
+  speed=3.5;
+  if(distance>35){
+   farmerMode="PATROLLING";
+   target=waypoints[waypoint];
+  }
+ }else{
+  target=waypoints[waypoint];
+  speed=2.4;
+  if(farmer.position.distanceTo(target)<2){
+   waypoint=(waypoint+1)%waypoints.length;
+   target=waypoints[waypoint];
   }
  }
 
- // Rolling animation
- if(horizontal>.05){
-  body.rotation.x+=velocity.z*dt/0.53;
-  body.rotation.z-=velocity.x*dt/0.53;
+ const vx=target.x-farmer.position.x;
+ const vz=target.z-farmer.position.z;
+ const d=Math.hypot(vx,vz);
+
+ if(d>.3){
+  const move=Math.min(speed*dt,d);
+  farmer.position.x+=vx/d*move;
+  farmer.position.z+=vz/d*move;
+  farmer.rotation.y=Math.atan2(vx,vz);
+  farmer.children[1].rotation.x=Math.sin(performance.now()*.008)*.08;
+  arms[0].rotation.x=Math.sin(performance.now()*.008)*.3;
+  arms[1].rotation.x=-Math.sin(performance.now()*.008)*.3;
  }
 
- // Potato wobble while moving
- if(grounded){
-  body.rotation.y+=Math.sin(Date.now()*.008)*.003;
+ if(distance<1.65&&farmerMode==="CHASING"){
+  endGame(false);
  }
-
- // Falling off the world
- if(potato.position.y < -4){
-  die();
- }
-
- // Escape gate
- if(destination==="farm"&&potato.position.z < -30.5 &&
-    Math.abs(potato.position.x)<2.4 && potato.position.y<3){
-  playing=false;
-  selectedDestination=true;
-  document.getElementById("destinationScreen").classList.remove("hidden");
- }
-
- // Destination portal
- if(destination!=="farm"&&potato.position.z < -80&&
-    Math.abs(potato.position.x)<3&&potato.position.y<4){
-  won=true;
-  playing=false;
-  document.getElementById("winScreen").classList.remove("hidden");
- }
-
- document.getElementById("status").textContent=
-  grounded?"Rolling around!":"IN THE AIR!";
 }
 
-// ---------------------------------
-// CAMERA
-// ---------------------------------
+// PLAYER UPDATE
+function updatePlayer(dt){
+ if(dead||won)return;
 
-function updateCamera(dt){
- const target=new THREE.Vector3(
-  potato.position.x,
-  potato.position.y+1.1,
-  potato.position.z
- );
- const desired=new THREE.Vector3(
-  potato.position.x,
-  potato.position.y+4.5,
-  potato.position.z+9
- );
- camera.position.lerp(desired,1-Math.pow(.001,dt));
- camera.lookAt(target);
-}
+ const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+ const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
 
-// ---------------------------------
-// BUTTONS
-// ---------------------------------
+ let move=new THREE.Vector3();
+ if(keys.KeyW||keys.ArrowUp)move.add(forward);
+ if(keys.KeyS||keys.ArrowDown)move.sub(forward);
+ if(keys.KeyD||keys.ArrowRight)move.add(right);
+ if(keys.KeyA||keys.ArrowLeft)move.sub(right);
 
-function startGame(){
- document.getElementById("startScreen").classList.add("hidden");
- document.getElementById("deathScreen").classList.add("hidden");
- document.getElementById("winScreen").classList.add("hidden");
- document.getElementById("destinationScreen").classList.add("hidden");
- buildFarm();
- playing=true;
-}
+ if(move.lengthSq()>0)move.normalize();
 
-document.getElementById("startBtn").addEventListener("click",startGame);
-document.getElementById("restartBtn").addEventListener("click",()=>{
- document.getElementById("deathScreen").classList.add("hidden");
- if(destination==="farm"){
-  buildFarm();
- }else{
-  buildDestination(destination);
+ const running=(keys.ShiftLeft||keys.ShiftRight)&&stamina>0&&!crouching;
+ const speed=crouching?2.1:running?8:4.3;
+ playerSpeed=speed*move.length();
+
+ if(running&&move.length()>0)stamina=Math.max(0,stamina-dt*20);
+ else stamina=Math.min(100,stamina+dt*11);
+
+ const nx=player.position.x+move.x*speed*dt;
+ const nz=player.position.z+move.z*speed*dt;
+
+ if(!collision(nx,player.position.z))player.position.x=nx;
+ if(!collision(player.position.x,nz))player.position.z=nz;
+
+ if(move.lengthSq()>0){
+  const target=Math.atan2(move.x,move.z);
+  let diff=target-player.rotation.y;
+  diff=Math.atan2(Math.sin(diff),Math.cos(diff));
+  player.rotation.y+=diff*Math.min(1,dt*12);
  }
- playing=true;
-});
-document.getElementById("againBtn").addEventListener("click",()=>{
- document.getElementById("winScreen").classList.add("hidden");
- startGame();
-});
 
-document.querySelectorAll("[data-dest]").forEach(button=>{
- button.addEventListener("click",()=>{
-  const type=button.dataset.dest;
-  document.getElementById("destinationScreen").classList.add("hidden");
-  buildDestination(type);
-  playing=true;
+ // Jump physics
+ if(jumping){
+  verticalVelocity-=19*dt;
+  player.position.y+=verticalVelocity*dt;
+  if(player.position.y<=0){
+   player.position.y=0;jumping=false;verticalVelocity=0;
+  }
+ }
+
+ walkTime+=dt*(move.length()>0?speed:0);
+ body.position.y=1.05+(move.length()>0?Math.abs(Math.sin(walkTime*2))*.07:0);
+ body.rotation.z=move.x*.08;
+
+ // Collect items
+ collectibles.forEach(c=>{
+  if(!c.active)return;
+  c.group.rotation.y+=dt;
+  c.group.position.y=1+Math.sin(performance.now()*.002+c.group.position.x)*.15;
+  if(player.position.distanceTo(c.group.position)<2.2){
+   c.active=false;c.group.visible=false;
+   collected++;
+   $("count").textContent=collected+" / 5";
+   $("objective").textContent=collected===5?
+    "ALL GOLDEN POTATOES FOUND! REACH THE ESCAPE GATE":
+    "FIND THE REMAINING GOLDEN POTATOES";
+  }
  });
-});
 
-// ---------------------------------
-// ANIMATION LOOP
-// ---------------------------------
-
-let previous=performance.now();
-
-function animate(now){
- requestAnimationFrame(animate);
- const dt=Math.min((now-previous)/1000,.04);
- previous=now;
-
- if(dead){
-  squashTime+=dt;
+ // Escape
+ if(collected>=5&&Math.hypot(player.position.x,player.position.z+94)<8){
+  endGame(true);
  }
 
- physics(dt);
- updateCamera(dt);
+ $("stamina").textContent=Math.round(stamina)+"%";
+}
+
+// UI
+function updateUI(){
+ const chasing=farmerMode==="CHASING";
+ $("farmerstatus").textContent=chasing?"CHASING":farmerMode;
+ $("farmerstatus").style.color=chasing?"#ff5555":"#b6dca1";
+ $("alert").classList.toggle("show",chasing);
+ $("meter").classList.toggle("show",spotted>.05);
+ $("meterfill").style.width=Math.min(100,spotted/2*100)+"%";
+}
+
+// GAME END
+function endGame(success){
+ if(dead||won)return;
+ if(success)won=true;else dead=true;
+ document.exitPointerLock?.();
+
+ $("overlay").style.display="flex";
+ $("overlay").querySelector("h1").innerHTML=success?
+  "YOU ESCAPED! 🥔":"CAUGHT! 💀";
+ $("overlay").querySelector("p").innerHTML=success?
+  "You collected every golden potato and escaped the farm!":
+  "The farmer caught you. Your potato adventure is over.";
+ $("overlay").querySelector(".small").textContent=
+  success?"WELL DONE!":"Try again. Stay hidden and watch the farmer.";
+ $("start").textContent=success?"PLAY AGAIN":"RETRY";
+ $("message").textContent="";
+}
+
+// START / RESTART
+function resetGame(){
+ collected=0;spotted=0;stamina=100;
+ dead=false;won=false;
+ farmerMode="PATROLLING";waypoint=0;
+ player.position.set(0,0,65);
+ player.rotation.set(0,0,0);
+ farmer.position.set(-25,0,0);
+ farmer.rotation.set(0,0,0);
+ collectibles.forEach(c=>{
+  c.active=true;c.group.visible=true;
+ });
+ $("count").textContent="0 / 5";
+ $("objective").textContent="COLLECT 5 GOLDEN POTATOES AND ESCAPE";
+ $("overlay").style.display="none";
+ gameStarted=true;
+ yaw=0;pitch=.18;
+ updateCamera(.016);
+}
+
+$("start").addEventListener("click",()=>{
+ resetGame();
+ renderer.domElement.requestPointerLock?.();
+});
+
+// ATMOSPHERE
+// Distant hills
+for(let i=0;i<18;i++){
+ const hill=new THREE.Mesh(
+  new THREE.SphereGeometry(1,20,16),
+  mat(i%2?0x647b63:0x71816a)
+ );
+ hill.scale.set(18+Math.random()*20,8+Math.random()*12,12);
+ hill.position.set((Math.random()-.5)*250,-5,-115-Math.random()*60);
+ scene.add(hill);
+}
+
+// CLOUDS
+const cloudMat=new THREE.MeshStandardMaterial({
+ color:0xe0e4df,roughness:1,transparent:true,opacity:.75
+});
+for(let i=0;i<15;i++){
+ const cloud=new THREE.Group();
+ for(let j=0;j<5;j++){
+  const c=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),cloudMat);
+  c.position.set(j*2,Math.random(),Math.random()*2);
+  c.scale.set(2.8,1.2,1.8);
+  cloud.add(c);
+ }
+ cloud.position.set((Math.random()-.5)*220,35+Math.random()*18,-100+Math.random()*180);
+ scene.add(cloud);
+}
+
+// WIND / GRASS MOVEMENT
+const clock=new THREE.Clock();
+
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
+
+ if(gameStarted&&!dead&&!won){
+  updatePlayer(dt);
+  updateFarmer(dt);
+  updateUI();
+  updateCamera(dt);
+ }else{
+  camera.position.lerp(new THREE.Vector3(0,7,77),.015);
+  camera.lookAt(0,1,65);
+ }
+
  renderer.render(scene,camera);
 }
+animate();
 
-requestAnimationFrame(animate);
-
-// Resize
-window.addEventListener("resize",()=>{
+// RESIZE
+addEventListener("resize",()=>{
  camera.aspect=innerWidth/innerHeight;
  camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
 });
+
+// Initial camera
+camera.position.set(0,7,77);
+camera.lookAt(0,1,65);
 </script>
 </body>
 </html>
